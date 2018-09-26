@@ -13,11 +13,14 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.fscott.texter.api.Texter;
+import com.fscott.texter.model.Document;
+import com.fscott.texter.model.Result;
 
 /**
  * Runs 
@@ -27,79 +30,55 @@ import com.fscott.texter.api.Texter;
 
 public class StringMatchTexterImpl implements Texter {
 
-	private List<File> filesToProcess;
-	private boolean doPreProcess = false;
-	private HashMap<String,List<String>> contents = new HashMap<>();
+	private List<Document> documents = new ArrayList<>();
 	
 	@Override
 	public void setFilesToProcess(List<File> filesToProcess, boolean doPreProcess) throws FileNotFoundException, IOException {
 		
-		this.filesToProcess = filesToProcess;
-		this.doPreProcess = doPreProcess;
-		
-		if (this.doPreProcess) {
-			this.preProcess();
-		} else {
-			for (File file : this.filesToProcess) {
-				if (!file.exists()) {
-					throw new FileNotFoundException();
-				}
+        for (File file : filesToProcess) {
+        	if (!file.exists()) {
+				throw new FileNotFoundException();
+			} else {
+				Document doc = new Document(file);
+				documents.add(doc);
 			}
 		}
+	
+		if (doPreProcess == true)
+		    preProcess();
 	}
 	
 	private void preProcess() throws FileNotFoundException, IOException {
-		for (File file : filesToProcess) {
-			List<String> content = new ArrayList<>();
-			try (BufferedReader br = new BufferedReader(new FileReader(file))) {	        	    
-				br.lines().parallel().forEach(
-        	    	line -> content.add(line)
-        	    );
-        	}
-			contents.put(file.getName(),content);
+		for (Document doc : documents) {
+			doc.loadContent();
 		}
-		
 	}
 
 	@Override
 	public void process(final List<String> searchTerms) {
-		if (!this.doPreProcess) {
-			AtomicInteger trial = new AtomicInteger(1);
-			searchTerms.stream().parallel().forEach(
-				target -> {
-		    	System.out.println("(Trial " + trial.get() + ")The target is: " + target);
-		    	
-		    	trial.incrementAndGet();
-	    		for (File file : filesToProcess) {
-		    		AtomicInteger counter = new AtomicInteger(0);
-		    		try (BufferedReader br = new BufferedReader(new FileReader(file))) {
-		        	    br.lines().forEach(
-		        	    	line -> counter.addAndGet(getHits(line.toLowerCase(),target.toLowerCase()))
-		        	    );
-		        	} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-						System.exit(1);
-					}
-		    		System.out.println("Hits for " + file.getName() + ": " + counter.toString());
-		    	}
-	    	});
-		} else {
-    		AtomicInteger trial = new AtomicInteger(1);
-	    	searchTerms.stream().parallel().forEach(
-	    		target -> {
-		    	System.out.println("(Trial " + trial.get() + ") The target is: " + target);
-		    	
-		    	trial.incrementAndGet();
-		    	for (String contentName : contents.keySet()) {
-		    		AtomicInteger counter = new AtomicInteger(0);
-		    		contents.get(contentName).stream().forEach(
-		    				line -> counter.addAndGet(getHits(line.toLowerCase(),target.toLowerCase()))
-		        	);
-		    		System.out.println("Hits for " + contentName + ": " + counter.toString());
-		    	}
-	    	});
-		}
+		AtomicInteger trial = new AtomicInteger(1);
+		searchTerms.stream().parallel().forEach(
+			target -> {
+	    	System.out.println("(Trial " + trial.get() + ")The target is: " + target);
+	    	
+	    	List<Result> results = new ArrayList<>();
+	    	
+	    	trial.incrementAndGet();
+    		for (Document doc : documents) {
+	    		AtomicInteger counter = new AtomicInteger(0);
+	    		try (BufferedReader br = new BufferedReader(new FileReader(doc.getFile()))) {
+	        	    br.lines().forEach(
+	        	    	line -> counter.addAndGet(getHits(line.toLowerCase(),target.toLowerCase()))
+	        	    );
+	        	} catch (IOException e) {
+					e.printStackTrace();
+					System.exit(1);
+				}
+	    		results.add(Result.create(doc.getFile().getName(), counter));	    		
+	    	}
+    		Collections.sort(results, Collections.reverseOrder());
+    		System.out.println(results.toString());
+    	});
 	}
 
 	@Override

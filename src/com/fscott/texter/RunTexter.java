@@ -40,19 +40,26 @@ class RunTexter {
     	
     	int num = 0;
     	boolean preProcess = false;
+    	String customTarget = null;
     	
     	final String appConfigPath = "config.properties";
     	File f = new File(appConfigPath);
     	if (f.exists()) {
     	    Properties appProps = new Properties();
     	    appProps.load(new FileInputStream(appConfigPath));
-    	    Integer.parseInt(appProps.getProperty("numberOfTrials"));
-
+    	    
         	num = Integer.parseInt(appProps.getProperty("numberOfTrials"));
         	preProcess = Boolean.parseBoolean(appProps.getProperty("preProcess"));
+        	customTarget = appProps.getProperty("searchTerm");
+        	
     	}
     	
-    	final List<String> targets = getTargets(num);
+    	List<String> targets = new ArrayList<>();
+    	
+    	if (customTarget != null)
+    		 targets.add(customTarget);
+    	else 
+    	    targets = getTargets(num);
     	
     	List<File> files = Arrays.asList(new File("res/french_armed_forces.txt")
     									 ,new File("res/hitchhikers.txt")
@@ -65,6 +72,8 @@ class RunTexter {
     	stringMatcher.setFilesToProcess(files, preProcess);
     	stringMatcher.process(targets);
     	
+    	stopwatch.stop();
+    	System.out.println("Finished in " + stopwatch.elapsed(TimeUnit.MILLISECONDS) + " milliseconds.");
     	System.out.println("Finished in " + stopwatch.elapsed(TimeUnit.SECONDS) + " seconds.");
     }
     
