@@ -7,9 +7,9 @@
 
 package com.fscott.texter.api;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.List;
 
 /**
@@ -18,10 +18,10 @@ import java.util.List;
  * @author Franklin Scott
  */
 
-public interface Texter<T> {
-	public void setFilesToProcess(final List<File> filesToProcess, final boolean doPreProcess) throws FileNotFoundException, IOException;
-		
-	public void process(final List<String> searchTerms);
-	
-	public int getHits(final String line, final T target);
+public interface Texter<T,S> {
+    public void setFilesToProcess(final Path documentDir, final boolean doPreProcess) throws FileNotFoundException, IOException;
+        
+    public void process(final List<String> searchTerms);
+    
+    public int getHits(final T text, final S target);
 }
