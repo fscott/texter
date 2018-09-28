@@ -8,12 +8,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Document {
+public class NonIndexedDocument {
 	
 	private File file;
 	private List<String> content = new ArrayList<>();
 	
-	public Document(File file) {
+	public NonIndexedDocument(File file) {
 		this.file = file;
 	}
 	

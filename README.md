@@ -1,3 +1,11 @@
 # Texter - A program to search a text file for a given term by various methods.
 
-A work in progress
+### Usage
+
+Configure with `config.properties`.
+
+To run:
+
+`ant run`
+
+### Discussion

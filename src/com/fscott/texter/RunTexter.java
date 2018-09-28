@@ -22,6 +22,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.cli.ParseException;
 
+import com.fscott.texter.impl.RegexTexterImpl;
 import com.fscott.texter.impl.StringMatchTexterImpl;
 import com.google.common.base.Stopwatch;
 
@@ -41,6 +42,7 @@ class RunTexter {
     	int num = 0;
     	boolean preProcess = false;
     	String customTarget = null;
+    	String texterType = null;
     	
     	final String appConfigPath = "config.properties";
     	File f = new File(appConfigPath);
@@ -49,8 +51,10 @@ class RunTexter {
     	    appProps.load(new FileInputStream(appConfigPath));
     	    
         	num = Integer.parseInt(appProps.getProperty("numberOfTrials"));
-        	preProcess = Boolean.parseBoolean(appProps.getProperty("preProcess"));
+        	preProcess = Boolean.parseBoolean(appProps.getProperty("preProcess", "false"));
         	customTarget = appProps.getProperty("searchTerm");
+        	
+        	texterType = appProps.getProperty("texterType");
         	
     	}
     	
@@ -68,9 +72,18 @@ class RunTexter {
     									 //,new File("res/websters.txt")
     									);
     	
-    	StringMatchTexterImpl stringMatcher = new StringMatchTexterImpl();
-    	stringMatcher.setFilesToProcess(files, preProcess);
-    	stringMatcher.process(targets);
+    	
+    	if (texterType.equals("string")) {
+    		System.out.println("Using string matcher.");
+    		StringMatchTexterImpl stringMatcher = new StringMatchTexterImpl();
+    		stringMatcher.setFilesToProcess(files, preProcess);
+    		stringMatcher.process(targets);
+    	} else if (texterType.equals("regex")) {
+    		System.out.println("Using regex matcher.");
+    		RegexTexterImpl regexMatcher = new RegexTexterImpl();
+    		regexMatcher.setFilesToProcess(files, preProcess);
+    		regexMatcher.process(targets);
+    	}
     	
     	stopwatch.stop();
     	System.out.println("Finished in " + stopwatch.elapsed(TimeUnit.MILLISECONDS) + " milliseconds.");

@@ -13,13 +13,12 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.fscott.texter.api.Texter;
-import com.fscott.texter.model.Document;
+import com.fscott.texter.model.NonIndexedDocument;
 import com.fscott.texter.model.Result;
 
 /**
@@ -28,9 +27,9 @@ import com.fscott.texter.model.Result;
  * @author Franklin Scott
  */
 
-public class StringMatchTexterImpl implements Texter {
+public class StringMatchTexterImpl implements Texter<String> {
 
-	private List<Document> documents = new ArrayList<>();
+	private List<NonIndexedDocument> documents = new ArrayList<>();
 	
 	@Override
 	public void setFilesToProcess(List<File> filesToProcess, boolean doPreProcess) throws FileNotFoundException, IOException {
@@ -39,7 +38,7 @@ public class StringMatchTexterImpl implements Texter {
         	if (!file.exists()) {
 				throw new FileNotFoundException();
 			} else {
-				Document doc = new Document(file);
+				NonIndexedDocument doc = new NonIndexedDocument(file);
 				documents.add(doc);
 			}
 		}
@@ -49,7 +48,7 @@ public class StringMatchTexterImpl implements Texter {
 	}
 	
 	private void preProcess() throws FileNotFoundException, IOException {
-		for (Document doc : documents) {
+		for (NonIndexedDocument doc : documents) {
 			doc.loadContent();
 		}
 	}
@@ -64,7 +63,7 @@ public class StringMatchTexterImpl implements Texter {
 	    	List<Result> results = new ArrayList<>();
 	    	
 	    	trial.incrementAndGet();
-    		for (Document doc : documents) {
+    		for (NonIndexedDocument doc : documents) {
 	    		AtomicInteger counter = new AtomicInteger(0);
 	    		try (BufferedReader br = new BufferedReader(new FileReader(doc.getFile()))) {
 	        	    br.lines().forEach(

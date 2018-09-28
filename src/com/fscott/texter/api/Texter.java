@@ -18,10 +18,10 @@ import java.util.List;
  * @author Franklin Scott
  */
 
-public interface Texter {
+public interface Texter<T> {
 	public void setFilesToProcess(final List<File> filesToProcess, final boolean doPreProcess) throws FileNotFoundException, IOException;
 		
 	public void process(final List<String> searchTerms);
 	
-	public int getHits(final String line, final String target);
+	public int getHits(final String line, final T target);
 }
