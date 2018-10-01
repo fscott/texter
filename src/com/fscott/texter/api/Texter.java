@@ -19,9 +19,9 @@ import java.util.List;
  */
 
 public interface Texter<T,S> {
-    public void setFilesToProcess(final Path documentDir, final boolean doPreProcess) throws FileNotFoundException, IOException;
+    public void prepareDocs(final Path documentDir, final boolean doPreProcess) throws FileNotFoundException, IOException;
         
-    public void process(final List<String> searchTerms);
+    public void searchDocs(final List<String> searchTerms);
     
     public int getHits(final T text, final S target);
 }

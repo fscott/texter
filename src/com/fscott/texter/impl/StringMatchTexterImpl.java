@@ -22,6 +22,7 @@ import java.util.stream.Stream;
 import com.fscott.texter.api.Texter;
 import com.fscott.texter.model.NonIndexedDocument;
 import com.fscott.texter.model.Result;
+import com.google.common.base.Preconditions;
 
 /**
  * Runs 
@@ -32,19 +33,25 @@ import com.fscott.texter.model.Result;
 public class StringMatchTexterImpl implements Texter<String,String> {
 
     private List<NonIndexedDocument> documents = new ArrayList<>();
+    private boolean preProcessed = false;
     
     @Override
-    public void setFilesToProcess(final Path documentDir, boolean doPreProcess) throws FileNotFoundException, IOException {
+    public void prepareDocs(final Path documentDir, boolean doPreProcess) throws FileNotFoundException, IOException {
+        Preconditions.checkArgument(documentDir.toFile().exists(), "documentDir must exist");
         
         try (Stream<Path> stream = Files.walk(documentDir)) {
-            stream.filter(path -> path.toFile().exists()).forEach(path -> { 
+            stream.filter(path -> path.toFile().exists() 
+                                  && !path.toFile().isDirectory() 
+                                  && path.toFile().getName().endsWith("txt")).forEach(path -> { 
                 NonIndexedDocument doc = new NonIndexedDocument(path.toFile());
                 documents.add(doc);
             });
         };
     
-        if (doPreProcess == true)
+        if (doPreProcess == true) {
             preProcess();
+            this.preProcessed = true;
+        }
     }
     
     private void preProcess() throws FileNotFoundException, IOException {
@@ -54,9 +61,11 @@ public class StringMatchTexterImpl implements Texter<String,String> {
     }
 
     @Override
-    public void process(final List<String> searchTerms) {
+    public void searchDocs(final List<String> searchTerms) {
+        Preconditions.checkNotNull(searchTerms, "searchTerms cannot be null");
+        
         AtomicInteger trial = new AtomicInteger(1);
-        searchTerms.stream().parallel().forEach(
+        searchTerms.stream().forEach(
             target -> {
             System.out.println("(Trial " + trial.get() + ")The target is: " + target);
             
@@ -64,16 +73,25 @@ public class StringMatchTexterImpl implements Texter<String,String> {
             
             trial.incrementAndGet();
             for (NonIndexedDocument doc : documents) {
+                System.out.println(doc.getFile().getName());
                 AtomicInteger counter = new AtomicInteger(0);
-                try (BufferedReader br = new BufferedReader(new FileReader(doc.getFile()))) {
-                    br.lines().forEach(
-                        line -> counter.addAndGet(getHits(line.toLowerCase(),target.toLowerCase()))
-                    );
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    System.exit(1);
+                if (this.preProcessed) {
+                    doc.getContent().forEach(
+                            line -> {
+                                counter.addAndGet(getHits(line.toLowerCase(),target.toLowerCase()));
+                            });
+                } else {                
+                    try (BufferedReader br = new BufferedReader(new FileReader(doc.getFile()))) {
+                        br.lines().forEach(
+                            line -> {
+                                counter.addAndGet(getHits(line.toLowerCase(),target.toLowerCase()));
+                            });
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        System.exit(1);
+                    }
                 }
-                results.add(Result.create(doc.getFile().getName(), counter));                
+                results.add(Result.create(doc.getFile().getName(), counter));
             }
             Collections.sort(results, Collections.reverseOrder());
             System.out.println(results.toString());
@@ -82,6 +100,9 @@ public class StringMatchTexterImpl implements Texter<String,String> {
 
     @Override
     public int getHits(final String line, final String target) {
+        Preconditions.checkNotNull(line, "line cannot be null");
+        Preconditions.checkNotNull(target, "target cannot be null");
+        
         char[] targetChars = target.toCharArray();
         int hits = 0;
         
@@ -89,24 +110,27 @@ public class StringMatchTexterImpl implements Texter<String,String> {
         final int len = line.length() - lenTarget;
 
         int pos = 0;     
-        while (pos < len) {
-            //System.out.println("pos: " + pos);
-            //System.out.println("line.charAt(pos): " + line.charAt(pos));
+        while (pos <= len) {
+//            System.out.println("pos: " + pos);
+//            System.out.println("len: " + len);
+//            System.out.println("line.charAt(pos): " + line.charAt(pos));
 
             if (line.charAt(pos) == targetChars[0]) {
                 int bump = 1;
                 for (int i = 1; i < lenTarget; i++) {
-                    //System.out.println("line.charAt(pos + i): " + line.charAt(pos + i));
+//                    System.out.println("inner line.charAt(pos + i): " + line.charAt(pos + i));
                     if (line.charAt(pos + i) == targetChars[i]) {
                         bump++;
                         if (i + 1 == lenTarget) {
+//                            System.out.println("hit!");
                             hits++;
                         }
                     } else {
                         break;
                     }
                 }
-                pos += bump;
+                pos = pos + bump;
+//                System.out.println("inner pos: " + pos);
             } else {
                 pos++;
             }

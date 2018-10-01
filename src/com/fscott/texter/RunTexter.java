@@ -23,6 +23,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.cli.ParseException;
 
+import com.fscott.texter.impl.LuceneTexterImpl;
 import com.fscott.texter.impl.RegexTexterImpl;
 import com.fscott.texter.impl.StringMatchTexterImpl;
 import com.google.common.base.Stopwatch;
@@ -71,13 +72,18 @@ class RunTexter {
         if (texterType.equals("string")) {
             System.out.println("Using string matcher.");
             StringMatchTexterImpl stringMatcher = new StringMatchTexterImpl();
-            stringMatcher.setFilesToProcess(docDir, preProcess);
-            stringMatcher.process(targets);
+            stringMatcher.prepareDocs(docDir, preProcess);
+            stringMatcher.searchDocs(targets);
         } else if (texterType.equals("regex")) {
             System.out.println("Using regex matcher.");
             RegexTexterImpl regexMatcher = new RegexTexterImpl();
-            regexMatcher.setFilesToProcess(docDir, preProcess);
-            regexMatcher.process(targets);
+            regexMatcher.prepareDocs(docDir, preProcess);
+            regexMatcher.searchDocs(targets);
+        } else if (texterType.equals("lucene")) {
+            System.out.println("Using lucene index matcher.");
+            LuceneTexterImpl luceneMatcher = new LuceneTexterImpl(Paths.get("res/index"), true);
+            luceneMatcher.prepareDocs(docDir, preProcess);
+            luceneMatcher.searchDocs(targets);
         }
         
         stopwatch.stop();

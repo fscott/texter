@@ -23,18 +23,26 @@ public class NonIndexedDocument {
     
     public void loadContent() throws FileNotFoundException, IOException {
         try (BufferedReader br = new BufferedReader(new FileReader(this.file))) {                    
-            br.lines().parallel().forEach(
+            br.lines().forEach(
                 line -> this.content.add(line)
             );
         }
     }
     
-    public List<String> getContent() throws FileNotFoundException, IOException {
+    public List<String> getContent() {
         if (this.content != null) {
             return this.content;
         } else {
             System.out.println("no content loaded for " + this.getFile().getName());
-            this.loadContent();
+            try {
+                this.loadContent();
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+                System.exit(1);
+            } catch (IOException e) {
+                e.printStackTrace();
+                System.exit(1);
+            }
             return this.content;
         }
     }
