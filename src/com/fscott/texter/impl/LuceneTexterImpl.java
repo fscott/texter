@@ -11,7 +11,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
@@ -42,6 +45,7 @@ import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.BytesRef;
 
 import com.fscott.texter.api.Texter;
+import com.fscott.texter.model.Result;
 import com.google.common.base.Charsets;
 import com.google.common.base.Preconditions;
 
@@ -112,58 +116,57 @@ public class LuceneTexterImpl implements Texter<IndexSearcher,Query>{
     @Override
     public void searchDocs(List<String> searchTerms) {
         Preconditions.checkNotNull(searchTerms, "searchTerms cannot be null");
-        //TermFrequencyAttribute
-        //IndexOptions.DOCS_AND_FREQS
         
         try (IndexReader reader = DirectoryReader.open(FSDirectory.open(this.indexPath))) {
         
             IndexSearcher searcher = new IndexSearcher(reader);
             Analyzer analyzer = new StandardAnalyzer();
             
-            final String field = "contents";
+            final String searchField = "contents";
+            final String statsField = "freqs";
+            final String pathField = "path";
             
+            AtomicInteger trial = new AtomicInteger(1);
             searchTerms.stream().forEach(searchTerm -> {
                 
+                System.out.println("(Trial " + trial.get() + ")The target is: " + searchTerm);
+                trial.incrementAndGet();
+                List<Result> results = new ArrayList<>();
                 Query query = null;
+                
                 try {
-                    query = new QueryParser(field, analyzer).parse(searchTerm);
+                    query = new QueryParser(searchField, analyzer).parse(searchTerm);
                 } catch (ParseException e1) {
                     // TODO Auto-generated catch block
                     e1.printStackTrace();
                 }
-                
+                                
                 Preconditions.checkNotNull(query, "query cannot be null");
                 try {
                     TopDocs topDocs = searcher.search(query, reader.maxDoc());
-                    System.out.println(topDocs.totalHits);
+                    // System.out.println(topDocs.totalHits);
                     ScoreDoc[] scoreDocs = topDocs.scoreDocs;
                     for (ScoreDoc d : scoreDocs) {
-                        System.out.println(searcher.doc(d.doc).get("path"));                        
-                        //System.out.println(searcher.doc(d.doc).getField("freqs").tokenStream(analyzer, null).getAttribute(TermFrequencyAttribute.class).getTermFrequency());
-                                                
-                        Terms terms = reader.getTermVector(d.doc, "freqs");
-                        TermsEnum t = terms.iterator();
-                        
-                        BytesRef term = t.next();
-                        while (term != null) {
-                            String s = term.utf8ToString();
-                            if (s.equals(searchTerm)) {                                
-                                System.out.println("yes!");
-                                PostingsEnum p = t.postings(null);
-                                p.nextDoc();
-                                                       
-                                System.out.println(p.freq());
-                                
-                            }
-                            term = t.next();
+                        final String docName = searcher.doc(d.doc).get(pathField);  
+                        int hits = 0;
+
+                        Terms terms = reader.getTermVector(d.doc, statsField);
+                        TermsEnum termsEnumIterator = terms.iterator();
+
+                        if (termsEnumIterator.seekExact(new BytesRef(searchTerm))) {
+                            PostingsEnum postings = termsEnumIterator.postings(null);
+                            postings.nextDoc();
+                            
+                            hits = postings.freq();
                         }
-                        
+                        results.add(Result.create(docName, new AtomicInteger(hits)));    
                     }
+                    Collections.sort(results, Collections.reverseOrder());
+                    System.out.println(results.toString());
                 } catch (IOException e) {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
                 }
-                //getHits(searcher,query);
             });   
             
         } catch (IOException e) {
@@ -176,15 +179,6 @@ public class LuceneTexterImpl implements Texter<IndexSearcher,Query>{
     public int getHits(IndexSearcher text, Query target) {
         Preconditions.checkNotNull(text, "text cannot be null");
         Preconditions.checkNotNull(target, "target cannot be null");
-                
-        try {
-            text.search(target, 1);
-            //System.out.println(topdocs.totalHits);
-            
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
         
         return 0;
     }

@@ -92,7 +92,8 @@ class RunTexter {
     }
     
     public static List<String> getTargets(int num) throws FileNotFoundException, IOException {
-        File wordsFile = new File("res/words_alpha.txt");
+        //File wordsFile = new File("res/words_alpha.txt");
+        File wordsFile = new File("res/words_ten_hundred.txt");
         List<String> words = new ArrayList<>();
         
         try (BufferedReader br = new BufferedReader(new FileReader(wordsFile))) {
