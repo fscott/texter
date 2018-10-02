@@ -8,8 +8,15 @@ public class TexterUtils {
     
     static public void printResults(List<Result> results) {
         if (!results.isEmpty()) {
+            boolean doAnyHaveHits = false;
             for (Result result : results) {
-                System.out.println(result.toString());
+                if (result.getHits() != 0) {
+                    System.out.println(result.toString());
+                    doAnyHaveHits = true;
+                }
+            }
+            if (!doAnyHaveHits) {
+                System.out.println("No hits recorded in the documents analyzed.");
             }
         } else {
             System.out.println("No hits recorded in the documents analyzed.");

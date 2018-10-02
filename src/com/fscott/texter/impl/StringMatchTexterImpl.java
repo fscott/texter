@@ -74,7 +74,6 @@ public class StringMatchTexterImpl implements Texter<String,String> {
             
             trial.incrementAndGet();
             for (NonIndexedDocument doc : documents) {
-                System.out.println(doc.getFile().getName());
                 AtomicInteger counter = new AtomicInteger(0);
                 if (this.preProcessed) {
                     doc.getContent().forEach(

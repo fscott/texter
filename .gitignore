@@ -2,7 +2,9 @@ bin/
 build/
 dist/
 old/
-res/
+res/*
+!res/words.txt
+!res/docs/moby_dick.txt
 .project
 .classpath
-.DS_Store
+**/.DS_Store

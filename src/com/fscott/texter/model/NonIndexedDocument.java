@@ -22,6 +22,7 @@ public class NonIndexedDocument {
     }
     
     public void loadContent() throws FileNotFoundException, IOException {
+        System.out.println("Loading content from " + this.file.getName());
         try (BufferedReader br = new BufferedReader(new FileReader(this.file))) {                    
             br.lines().forEach(
                 line -> this.content.add(line)

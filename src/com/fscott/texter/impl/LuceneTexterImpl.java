@@ -52,7 +52,7 @@ import com.google.common.base.Preconditions;
 
 
 // adapted from http://lucene.apache.org/core/7_5_0/demo/overview-summary.html#overview_description
-public class LuceneTexterImpl implements Texter<IndexSearcher,Query>{
+public class LuceneTexterImpl implements Texter<Terms,String>{
 
     private Path indexPath = null;
     private boolean brandNewIndex = true;
@@ -149,17 +149,9 @@ public class LuceneTexterImpl implements Texter<IndexSearcher,Query>{
                     ScoreDoc[] scoreDocs = topDocs.scoreDocs;
                     for (ScoreDoc d : scoreDocs) {
                         final String docName = searcher.doc(d.doc).get(pathField);  
-                        int hits = 0;
 
-                        Terms terms = reader.getTermVector(d.doc, statsField);
-                        TermsEnum termsEnumIterator = terms.iterator();
+                        int hits = getHits(reader.getTermVector(d.doc, statsField),searchTerm);
 
-                        if (termsEnumIterator.seekExact(new BytesRef(searchTerm))) {
-                            PostingsEnum postings = termsEnumIterator.postings(null);
-                            postings.nextDoc();
-                            
-                            hits = postings.freq();
-                        }
                         results.add(Result.create(docName, new AtomicInteger(hits)));    
                     }
                     Collections.sort(results, Collections.reverseOrder());
@@ -167,20 +159,34 @@ public class LuceneTexterImpl implements Texter<IndexSearcher,Query>{
                 } catch (IOException e) {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
+                    System.exit(1);
                 }
             });   
             
         } catch (IOException e) {
             e.printStackTrace();
+            System.exit(1);
         }
         
     }
 
     @Override
-    public int getHits(IndexSearcher text, Query target) {
+    public int getHits(Terms text, String target) {
         Preconditions.checkNotNull(text, "text cannot be null");
         Preconditions.checkNotNull(target, "target cannot be null");
+        try {
+            TermsEnum termsEnumIterator = text.iterator();
         
+            if (termsEnumIterator.seekExact(new BytesRef(target))) {
+                PostingsEnum postings = termsEnumIterator.postings(null);
+                postings.nextDoc();
+                
+                return postings.freq();
+            }
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
         return 0;
     }
     
