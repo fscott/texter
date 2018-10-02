@@ -39,6 +39,6 @@ public class Result implements Comparable<Result> {
     
     @Override
     public String toString() {
-        return documentName + " got " + hits + " hits.\n";
+        return documentName + " has " + hits + " hits.";
     }
 }

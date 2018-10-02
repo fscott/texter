@@ -17,6 +17,7 @@ import java.util.stream.Stream;
 import com.fscott.texter.api.Texter;
 import com.fscott.texter.model.NonIndexedDocument;
 import com.fscott.texter.model.Result;
+import com.fscott.texter.util.TexterUtils;
 import com.google.common.base.Preconditions;
 
 public class RegexTexterImpl implements Texter<String,Pattern> {
@@ -80,7 +81,7 @@ public class RegexTexterImpl implements Texter<String,Pattern> {
                 results.add(Result.create(doc.getFile().getName(), counter));                
             }
             Collections.sort(results, Collections.reverseOrder());
-            System.out.println(results.toString());
+            TexterUtils.printResults(results);
         });
     }
 

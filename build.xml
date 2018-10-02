@@ -19,6 +19,8 @@
   <path id="build.classpath">
     <fileset dir="lib">
 	    <include name="**/*.jar"/>
+    	<exclude name="**/*-javadoc.jar"/>
+    	<exclude name="**/*-sources.jar"/>
 	</fileset>
   </path>  
 

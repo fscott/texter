@@ -22,6 +22,8 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.cli.ParseException;
+import org.beryx.textio.TextIO;
+import org.beryx.textio.TextIoFactory;
 
 import com.fscott.texter.impl.LuceneTexterImpl;
 import com.fscott.texter.impl.RegexTexterImpl;
@@ -39,35 +41,46 @@ class RunTexter {
 
     public static void main(String[] args) throws FileNotFoundException, IOException, ParseException {
 
-        Stopwatch stopwatch = Stopwatch.createStarted();
-        
-        int num = 0;
+        int num = 1;
         boolean preProcess = false;
         String customTarget = null;
         String texterType = null;
         
-        final String appConfigPath = "config.properties";
-        File f = new File(appConfigPath);
-        if (f.exists()) {
-            Properties appProps = new Properties();
-            appProps.load(new FileInputStream(appConfigPath));
-            
-            num = Integer.parseInt(appProps.getProperty("numberOfTrials"));
-            preProcess = Boolean.parseBoolean(appProps.getProperty("preProcess", "false"));
-            customTarget = appProps.getProperty("searchTerm");
-            
-            texterType = appProps.getProperty("texterType");
-            
-        }
+        TextIO textIO = TextIoFactory.getTextIO();
         
+        customTarget = textIO.newStringInputReader()
+                                        .withDefaultValue(null)
+                                        .withMinLength(0)
+                                        .read("Enter the search term (or leave blank to use a random word(s)): ");
+        
+        texterType = textIO.newStringInputReader()
+                                        .withInlinePossibleValues("string", "regex", "lucene")
+                                        .withIgnoreCase()
+                                        .withInputTrimming(true)
+                                        .read("Enter the search method: ");
+        
+        if (!texterType.equals("lucene")) {
+            preProcess = textIO.newBooleanInputReader()
+                               .withDefaultValue(false)
+                               .read("Preprocess the text files?: ");
+        }
+
         List<String> targets = new ArrayList<>();
         
-        if (customTarget != null)
+        if (customTarget != null && customTarget.length() > 1)
              targets.add(customTarget);
-        else 
+        else {
+            num = textIO.newIntInputReader()
+            .withDefaultValue(1)
+            .withMinVal(1)
+            .withMaxVal(Integer.MAX_VALUE)
+            .read("How many trials to run (default is 1): ");
             targets = getTargets(num);
+        }
         
         final Path docDir = Paths.get("res/docs");
+        
+        Stopwatch stopwatch = Stopwatch.createStarted();
         
         if (texterType.equals("string")) {
             System.out.println("Using string matcher.");
@@ -89,6 +102,8 @@ class RunTexter {
         stopwatch.stop();
         System.out.println("Finished in " + stopwatch.elapsed(TimeUnit.MILLISECONDS) + " milliseconds.");
         System.out.println("Finished in " + stopwatch.elapsed(TimeUnit.SECONDS) + " seconds.");
+        double ratio = num / stopwatch.elapsed(TimeUnit.SECONDS);
+        System.out.println("Processed " + ratio +  " trials per second.");
     }
     
     public static List<String> getTargets(int num) throws FileNotFoundException, IOException {

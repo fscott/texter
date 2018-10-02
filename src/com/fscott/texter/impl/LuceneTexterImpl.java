@@ -46,6 +46,7 @@ import org.apache.lucene.util.BytesRef;
 
 import com.fscott.texter.api.Texter;
 import com.fscott.texter.model.Result;
+import com.fscott.texter.util.TexterUtils;
 import com.google.common.base.Charsets;
 import com.google.common.base.Preconditions;
 
@@ -162,7 +163,7 @@ public class LuceneTexterImpl implements Texter<IndexSearcher,Query>{
                         results.add(Result.create(docName, new AtomicInteger(hits)));    
                     }
                     Collections.sort(results, Collections.reverseOrder());
-                    System.out.println(results.toString());
+                    TexterUtils.printResults(results);
                 } catch (IOException e) {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
@@ -183,13 +184,15 @@ public class LuceneTexterImpl implements Texter<IndexSearcher,Query>{
         return 0;
     }
     
+    // only index files ending in .txt
     static void indexDocs(final IndexWriter writer, Path path) throws IOException {
         if (Files.isDirectory(path)) {
             Files.walkFileTree(path, new SimpleFileVisitor<Path>() {
                 @Override
                 public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
                     try {
-                        indexDoc(writer, file, attrs.lastModifiedTime().toMillis());
+                        if (file.toFile().getName().endsWith(".txt"))
+                            indexDoc(writer, file, attrs.lastModifiedTime().toMillis());
                     } catch (IOException ignore) {
                         // don't index files that can't be read.
                     }
@@ -197,7 +200,8 @@ public class LuceneTexterImpl implements Texter<IndexSearcher,Query>{
                 }
             });
         } else {
-            indexDoc(writer, path, Files.getLastModifiedTime(path).toMillis());
+            if (path.toFile().getName().endsWith(".txt"))
+                indexDoc(writer, path, Files.getLastModifiedTime(path).toMillis());
         }
     }
 
