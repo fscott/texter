@@ -1,4 +1,6 @@
-# Texter - A program to search a text file for a given term by various methods.
+# Texter - A program to search text files for a given term by various methods.
+
+This program searches for words (either a user-selected word or a random word) within text files.
 
 ### Requirements:
 

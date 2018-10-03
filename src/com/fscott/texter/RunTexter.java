@@ -23,6 +23,7 @@ import org.apache.commons.cli.ParseException;
 import org.beryx.textio.TextIO;
 import org.beryx.textio.TextIoFactory;
 
+import com.fscott.texter.api.Texter;
 import com.fscott.texter.impl.LuceneTexterImpl;
 import com.fscott.texter.impl.RegexTexterImpl;
 import com.fscott.texter.impl.StringMatchTexterImpl;
@@ -30,17 +31,17 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Stopwatch;
 
 /**
- * Runner for Texter. Use config.properties for options. 
+ * Runner for Texter. See README.md for usage information. 
  *
  * @author Franklin Scott
  */
 
 class RunTexter {
 
-
+    // https://stackoverflow.com/a/1129812
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     public static void main(String[] args) throws FileNotFoundException, IOException, ParseException {
 
-        int num = 1;
         boolean preProcess = false;
         String customTarget = null;
         String texterType = null;
@@ -63,7 +64,7 @@ class RunTexter {
         
         docDirInput = textIO.newStringInputReader()
                             .withInputTrimming(true)
-                            .withDefaultValue("res/docs")
+                            .withDefaultValue("docs")
                             .read("Enter the path to the directory containing text files to search: ");
         
         if (!texterType.equals("lucene")) {
@@ -79,56 +80,65 @@ class RunTexter {
 
         List<String> targets = new ArrayList<>();
         
+        int numberOfTrials = 1;
         if (customTarget != null && customTarget.length() > 1)
              targets.add(customTarget);
         else {
-            num = textIO.newIntInputReader()
-            .withDefaultValue(1)
-            .withMinVal(1)
-            .withMaxVal(Integer.MAX_VALUE)
-            .read("How many trials to run (default is 1): ");
+            numberOfTrials = textIO.newIntInputReader()
+                        .withDefaultValue(1)
+                        .withMinVal(1)
+                        .withMaxVal(Integer.MAX_VALUE)
+                        .read("How many trials to run (default is 1): ");
             
             final String wordsPath = textIO.newStringInputReader()
                                            .withInputTrimming(true)
                                            .withDefaultValue("res/words.txt")
                                            .read("Enter the path to the file containing words to search for: ");
             
-            targets = getTargets(num, wordsPath);
+            targets = getTargets(numberOfTrials, wordsPath);
         }
         
         final Path docDir = Paths.get(docDirInput);
         Preconditions.checkArgument(docDir.toFile().exists(), "directory with text files must exist");
         
-        Stopwatch stopwatch = Stopwatch.createStarted();
-        
+
+        Texter texter = null;
         if (texterType.equals("string")) {
             System.out.println("Using string matcher.");
-            StringMatchTexterImpl stringMatcher = new StringMatchTexterImpl();
-            stringMatcher.prepareDocs(docDir, preProcess);
-            stringMatcher.searchDocs(targets);
+            texter = new StringMatchTexterImpl();
+
         } else if (texterType.equals("regex")) {
             System.out.println("Using regex matcher.");
-            RegexTexterImpl regexMatcher = new RegexTexterImpl();
-            regexMatcher.prepareDocs(docDir, preProcess);
-            regexMatcher.searchDocs(targets);
+            texter = new RegexTexterImpl();
+
         } else if (texterType.equals("lucene")) {
             System.out.println("Using lucene index matcher.");
-            LuceneTexterImpl luceneMatcher = new LuceneTexterImpl(Paths.get(indexDirInput), true);
-            luceneMatcher.prepareDocs(docDir, preProcess);
-            luceneMatcher.searchDocs(targets);
+            texter = new LuceneTexterImpl(Paths.get(indexDirInput), true);
         }
         
+        Stopwatch stopwatch = Stopwatch.createStarted();
+        
+        texter.prepareDocs(docDir, preProcess);
+        
         stopwatch.stop();
-        System.out.println("Finished in " + stopwatch.elapsed(TimeUnit.MILLISECONDS) + " milliseconds.");
-        System.out.println("Finished in " + stopwatch.elapsed(TimeUnit.SECONDS) + " seconds.");
+        System.out.println("Documents prepared in " + stopwatch.elapsed(TimeUnit.MILLISECONDS) + " milliseconds.");
+        
+        stopwatch.reset();
+        stopwatch.start();
+
+        texter.searchDocs(targets);
+        
+        stopwatch.stop();
+        System.out.println("Documents searched in " + stopwatch.elapsed(TimeUnit.MILLISECONDS) + " milliseconds.");
+        System.out.println("Documents searched in " + stopwatch.elapsed(TimeUnit.SECONDS) + " seconds.");
         if (stopwatch.elapsed(TimeUnit.SECONDS) > 0) {
-            double ratio = num / stopwatch.elapsed(TimeUnit.SECONDS);
+            final double ratio = numberOfTrials / stopwatch.elapsed(TimeUnit.SECONDS);
             System.out.println("Processed " + ratio +  " trials per second.");
         }
     }
     
     public static List<String> getTargets(int num, final String wordsPath) throws FileNotFoundException, IOException {
-        File wordsFile = new File(wordsPath);
+        final File wordsFile = new File(wordsPath);
         Preconditions.checkArgument(wordsFile.exists(), "words file must exist");
         List<String> words = new ArrayList<>();
         
@@ -145,5 +155,4 @@ class RunTexter {
         }
         return randomWords;
     }
-    
 }

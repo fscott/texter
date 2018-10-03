@@ -6,7 +6,7 @@ import com.fscott.texter.model.Result;
 
 public class TexterUtils {
     
-    static public void printResults(List<Result> results) {
+    static public void printResults(final List<Result> results) {
         if (!results.isEmpty()) {
             boolean doAnyHaveHits = false;
             for (Result result : results) {

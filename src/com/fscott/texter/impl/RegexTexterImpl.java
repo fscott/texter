@@ -57,7 +57,8 @@ public class RegexTexterImpl implements Texter<String,Pattern> {
             target -> {
             System.out.println("(Trial " + trial.get() + ")The target is: " + target);
             
-            Pattern searchTermPattern = Pattern.compile(target, Pattern.CASE_INSENSITIVE);
+            // Pattern.LITERAL as limited protection against funky input
+            Pattern searchTermPattern = Pattern.compile(target, Pattern.CASE_INSENSITIVE | Pattern.LITERAL);
             
             List<Result> results = new ArrayList<>();
             

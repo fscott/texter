@@ -26,7 +26,7 @@ public class Result implements Comparable<Result> {
     }
     
     @Override
-    public int compareTo(Result that) {
+    public int compareTo(final Result that) {
         
         if (this.getHits() < that.getHits()) {
             return -1;
