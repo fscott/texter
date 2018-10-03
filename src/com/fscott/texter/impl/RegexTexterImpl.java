@@ -30,6 +30,14 @@ public class RegexTexterImpl implements Texter<String,Pattern> {
     private List<NonIndexedDocument> documents = new ArrayList<>();
     private boolean preProcessed = false;
     
+    /**
+     * Pre-processing for RegexTexterImpl loads the strings of a file in a list in memory.
+     *
+     * @param path to a directory that contains txt to search (non txt files will be skipped).
+     * @param whether to pre-process the documents.
+     * @throws FileNotFoundException
+     * @throws IOException
+     */
     @Override
     public void prepareDocs(final Path documentDir, boolean doPreProcess) throws FileNotFoundException, IOException {
         Preconditions.checkArgument(documentDir.toFile().exists(), "documentDir must exist");
@@ -57,6 +65,8 @@ public class RegexTexterImpl implements Texter<String,Pattern> {
 
     @Override
     public void searchDocs(final List<String> searchTerms) {
+        Preconditions.checkNotNull(searchTerms, "searchTerms cannot be null");
+        // AtomicInteger used to possibly support .parallel() in certain cases
         AtomicInteger trial = new AtomicInteger(1);
         searchTerms.stream().forEach(
             target -> {

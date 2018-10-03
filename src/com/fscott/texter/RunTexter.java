@@ -101,6 +101,7 @@ class RunTexter {
         final Path docDir = Paths.get(docDirInput);
         Preconditions.checkArgument(docDir.toFile().exists(), "directory with text files must exist");
         
+        textIO.dispose();
 
         Texter texter = null;
         if (texterType.equals("string")) {
@@ -137,7 +138,7 @@ class RunTexter {
         }
     }
     
-    public static List<String> getTargets(int num, final String wordsPath) throws FileNotFoundException, IOException {
+    private static List<String> getTargets(int num, final String wordsPath) throws FileNotFoundException, IOException {
         final File wordsFile = new File(wordsPath);
         Preconditions.checkArgument(wordsFile.exists(), "words file must exist");
         List<String> words = new ArrayList<>();

@@ -70,6 +70,16 @@ public class LuceneTexterImpl implements Texter<Terms,String>{
         this.brandNewIndex = brandNewIndex;
     }
 
+    /**
+     * Pre-processing for LuceneTexterImpl creates a lucene index in the indexPath.
+     * 
+     * Frequency data is stored in the 'freqs' field in the index.
+     *
+     * @param path to a directory that contains txt files to index (non txt files will be skipped).
+     * @param not used in this Impl.
+     * @throws FileNotFoundException
+     * @throws IOException
+     */
     @Override
     public void prepareDocs(final Path documentDir, boolean doPreProcess)
             throws FileNotFoundException, IOException {
@@ -119,6 +129,16 @@ public class LuceneTexterImpl implements Texter<Terms,String>{
         }
     }
 
+    /**
+     * Opens the index before iterating through the search terms.
+     * 
+     * Checks the contents to see if the search term is in the document before getting the hits.
+     * 
+     * (This might be slower than just checking the freqs field, but the trade off is we don't 
+     * have to check freqs for documents with no hits).
+     *
+     * @param a list of search term strings.
+     */
     @Override
     public void searchDocs(List<String> searchTerms) {
         Preconditions.checkNotNull(searchTerms, "searchTerms cannot be null");
@@ -132,6 +152,7 @@ public class LuceneTexterImpl implements Texter<Terms,String>{
             final String statsField = "freqs";
             final String pathField = "path";
             
+            // AtomicInteger used to possibly support .parallel() in certain cases
             AtomicInteger trial = new AtomicInteger(1);
             searchTerms.stream().forEach(searchTerm -> {
                 
@@ -164,15 +185,12 @@ public class LuceneTexterImpl implements Texter<Terms,String>{
                 } catch (IOException e) {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
-                    System.exit(1);
                 }
             });   
             
         } catch (IOException e) {
             e.printStackTrace();
-            System.exit(1);
         }
-        
     }
 
     @Override
@@ -191,12 +209,13 @@ public class LuceneTexterImpl implements Texter<Terms,String>{
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
+            System.exit(1);
         }
         return 0;
     }
     
     // only index files ending in .txt
-    static void indexDocs(final IndexWriter writer, Path path) throws IOException {
+    static private void indexDocs(final IndexWriter writer, Path path) throws IOException {
         if (Files.isDirectory(path)) {
             Files.walkFileTree(path, new SimpleFileVisitor<Path>() {
                 @Override
@@ -217,7 +236,7 @@ public class LuceneTexterImpl implements Texter<Terms,String>{
     }
 
     /** Indexes a single document */
-    static void indexDoc(IndexWriter writer, Path file, long lastModified) throws IOException {
+    static private void indexDoc(IndexWriter writer, Path file, long lastModified) throws IOException {
         try (InputStream stream = Files.newInputStream(file)) {
             // make a new, empty document
             Document doc = new Document();
