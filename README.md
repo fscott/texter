@@ -20,3 +20,6 @@ To run:
 `java -jar dist/Texter.jar`
 
 ### Discussion
+
+
+

@@ -6,6 +6,11 @@ import com.fscott.texter.model.Result;
 
 public class TexterUtils {
     
+    /**
+     * Prints the list of results for any document with non-zero hits.
+     *
+     * @param a list of results of type {@link Result.class Result}.
+     */
     static public void printResults(final List<Result> results) {
         if (!results.isEmpty()) {
             boolean doAnyHaveHits = false;

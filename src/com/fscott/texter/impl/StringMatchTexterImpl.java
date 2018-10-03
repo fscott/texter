@@ -26,7 +26,7 @@ import com.fscott.texter.util.TexterUtils;
 import com.google.common.base.Preconditions;
 
 /**
- * Runs 
+ * Performs search by string match. 
  *
  * @author Franklin Scott
  */

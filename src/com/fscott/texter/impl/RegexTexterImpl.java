@@ -20,6 +20,11 @@ import com.fscott.texter.model.Result;
 import com.fscott.texter.util.TexterUtils;
 import com.google.common.base.Preconditions;
 
+/**
+ * Performs search by regex match. 
+ *
+ * @author Franklin Scott
+ */
 public class RegexTexterImpl implements Texter<String,Pattern> {
 
     private List<NonIndexedDocument> documents = new ArrayList<>();
@@ -53,7 +58,7 @@ public class RegexTexterImpl implements Texter<String,Pattern> {
     @Override
     public void searchDocs(final List<String> searchTerms) {
         AtomicInteger trial = new AtomicInteger(1);
-        searchTerms.stream().parallel().forEach(
+        searchTerms.stream().forEach(
             target -> {
             System.out.println("(Trial " + trial.get() + ")The target is: " + target);
             

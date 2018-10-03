@@ -50,8 +50,13 @@ import com.fscott.texter.util.TexterUtils;
 import com.google.common.base.Charsets;
 import com.google.common.base.Preconditions;
 
-
-// adapted from http://lucene.apache.org/core/7_5_0/demo/overview-summary.html#overview_description
+/**
+ * Performs search by using a lucene index. 
+ * 
+ * Adapted from http://lucene.apache.org/core/7_5_0/demo/overview-summary.html#overview_description
+ *
+ * @author Franklin Scott
+ */
 public class LuceneTexterImpl implements Texter<Terms,String>{
 
     private Path indexPath = null;
