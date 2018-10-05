@@ -65,7 +65,6 @@ If this program is running as a service (for example Elasticsearch and Solr use 
 of word frequencies for each document.
 - Explore the effects of using .parallel()
 - Allow some more interesting regexes?
-- Should getHits be private?
 - Unit Testing
 - Better name for NonIndexedDocument (that doesn't confuse with Lucene Document.class)
 

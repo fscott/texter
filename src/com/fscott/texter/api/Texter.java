@@ -18,7 +18,7 @@ import java.util.List;
  * @author Franklin Scott
  */
 
-public interface Texter<T,S> {
+public interface Texter {
     
     /**
      * Checks that the document directory exists and walks the directory looking for txt files.
@@ -43,13 +43,4 @@ public interface Texter<T,S> {
      */
     public void searchDocs(final List<String> searchTerms);
     
-    
-    /**
-     * Determine how many instances of a given search term there are. Search is case insensitive.
-     *
-     * @param some text.
-     * @param the target of the search.
-     * @return the number of hits.
-     */
-    public int getHits(final T text, final S target);
 }

@@ -2,8 +2,9 @@ bin/
 build/
 dist/
 old/
+javadoc/
+docs/
 res/*
-!res/words.txt
 !res/docs/moby_dick.txt
 .project
 .classpath

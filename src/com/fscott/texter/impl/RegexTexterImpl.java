@@ -25,7 +25,7 @@ import com.google.common.base.Preconditions;
  *
  * @author Franklin Scott
  */
-public class RegexTexterImpl implements Texter<String,Pattern> {
+public class RegexTexterImpl implements Texter {
 
     private List<NonIndexedDocument> documents = new ArrayList<>();
     private boolean preProcessed = false;
@@ -45,7 +45,7 @@ public class RegexTexterImpl implements Texter<String,Pattern> {
         try (Stream<Path> stream = Files.walk(documentDir)) {
             stream.filter(path -> path.toFile().exists() 
                                   && !path.toFile().isDirectory() 
-                                  && path.toFile().getName().endsWith("txt")).forEach(path -> { 
+                                  && path.toFile().getName().endsWith(".txt")).forEach(path -> { 
                 NonIndexedDocument doc = new NonIndexedDocument(path.toFile());
                 documents.add(doc);
             });
@@ -101,8 +101,7 @@ public class RegexTexterImpl implements Texter<String,Pattern> {
         });
     }
 
-    @Override
-    public int getHits(final String line, final Pattern searchTermPattern) {
+    private int getHits(final String line, final Pattern searchTermPattern) {
         Preconditions.checkNotNull(line, "line cannot be null");
         Preconditions.checkNotNull(searchTermPattern, "searchTermPattern cannot be null");
         

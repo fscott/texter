@@ -57,7 +57,7 @@ import com.google.common.base.Preconditions;
  *
  * @author Franklin Scott
  */
-public class LuceneTexterImpl implements Texter<Terms,String>{
+public class LuceneTexterImpl implements Texter {
 
     private Path indexPath = null;
     private boolean brandNewIndex = true;
@@ -193,8 +193,7 @@ public class LuceneTexterImpl implements Texter<Terms,String>{
         }
     }
 
-    @Override
-    public int getHits(Terms text, String target) {
+    private int getHits(Terms text, String target) {
         Preconditions.checkNotNull(text, "text cannot be null");
         Preconditions.checkNotNull(target, "target cannot be null");
         try {

@@ -38,8 +38,6 @@ import com.google.common.base.Stopwatch;
 
 class RunTexter {
 
-    // https://stackoverflow.com/a/1129812
-    @SuppressWarnings({ "unchecked", "rawtypes" })
     public static void main(String[] args) throws FileNotFoundException, IOException, ParseException {
 
         boolean preProcess = false;

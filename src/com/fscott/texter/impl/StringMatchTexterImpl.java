@@ -31,7 +31,7 @@ import com.google.common.base.Preconditions;
  * @author Franklin Scott
  */
 
-public class StringMatchTexterImpl implements Texter<String,String> {
+public class StringMatchTexterImpl implements Texter {
 
     private List<NonIndexedDocument> documents = new ArrayList<>();
     private boolean preProcessed = false;
@@ -51,7 +51,7 @@ public class StringMatchTexterImpl implements Texter<String,String> {
         try (Stream<Path> stream = Files.walk(documentDir)) {
             stream.filter(path -> path.toFile().exists() 
                                   && !path.toFile().isDirectory() 
-                                  && path.toFile().getName().endsWith("txt")).forEach(path -> { 
+                                  && path.toFile().getName().endsWith(".txt")).forEach(path -> { 
                 NonIndexedDocument doc = new NonIndexedDocument(path.toFile());
                 documents.add(doc);
             });
@@ -106,8 +106,7 @@ public class StringMatchTexterImpl implements Texter<String,String> {
         });
     }
 
-    @Override
-    public int getHits(final String line, final String target) {
+    private int getHits(final String line, final String target) {
         Preconditions.checkNotNull(line, "line cannot be null");
         Preconditions.checkNotNull(target, "target cannot be null");
         
